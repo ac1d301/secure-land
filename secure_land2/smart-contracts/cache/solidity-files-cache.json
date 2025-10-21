@@ -1,0 +1,40 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\saiit\\Documents\\secure_land2\\smart-contracts\\contracts\\SecureLand.sol": {
+      "lastModificationDate": 1761053856096,
+      "contentHash": "9a9a67550ae07c548a418e4dde41a5d8",
+      "sourceName": "contracts/SecureLand.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "SecureLand"
+      ]
+    }
+  }
+}

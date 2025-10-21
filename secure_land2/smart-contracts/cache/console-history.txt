@@ -1,0 +1,4 @@
+(await ethers.getSigners())[0].address
+(await ethers.provider.getBalance("0xec0F335de329a61fc2Ec7fDBf41BBD5f5aAf1097")).toString()
+(await ethers.provider.getBalance("0xYOUR_WALLET_ADDRESS")).toString()
+(await ethers.getSigners())[0].address
