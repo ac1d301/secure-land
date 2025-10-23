@@ -15,7 +15,6 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 interface VerifyFormData {
   documentId: string;
-  hash: string;
 }
 
 const Verify: React.FC = () => {
@@ -34,7 +33,7 @@ const Verify: React.FC = () => {
 
   const onVerifySubmit = async (data: VerifyFormData) => {
     try {
-      const result = await verifyDocumentHash(data.documentId, data.hash);
+      const result = await verifyDocumentHash(data.documentId);
       setVerificationResult(result);
     } catch (error) {
       console.error('Verification failed:', error);
@@ -134,49 +133,28 @@ const Verify: React.FC = () => {
               Verify Document Hash
             </h3>
             <p className="text-gray-600 mb-6">
-              Enter a document ID and hash to verify if they match the blockchain record.
+              Enter the document hash to verify its authenticity on the blockchain.
             </p>
             
             <form onSubmit={handleSubmit(onVerifySubmit)} className="space-y-4">
               <div>
                 <label htmlFor="documentId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Document ID
-                </label>
-                <input
-                  {...register('documentId', {
-                    required: 'Document ID is required',
-                    minLength: {
-                      value: 10,
-                      message: 'Document ID must be at least 10 characters',
-                    },
-                  })}
-                  type="text"
-                  className="input w-full"
-                  placeholder="Enter document ID"
-                />
-                {errors.documentId && (
-                  <p className="mt-1 text-sm text-error-600">{errors.documentId.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="hash" className="block text-sm font-medium text-gray-700 mb-2">
                   Document Hash (SHA-256)
                 </label>
                 <input
-                  {...register('hash', {
-                    required: 'Hash is required',
+                  {...register('documentId', {
+                    required: 'Document hash is required',
                     pattern: {
-                      value: /^[a-fA-F0-9]{64}$/,
-                      message: 'Hash must be a valid 64-character SHA-256 hash',
+                      value: /^[a-fA-F0-9]{16,64}$/,
+                      message: 'Hash must be a valid hexadecimal string',
                     },
                   })}
                   type="text"
                   className="input w-full font-mono"
-                  placeholder="Enter 64-character SHA-256 hash"
+                  placeholder="Enter document hash (e.g., 1830ce9bc41612b1)"
                 />
-                {errors.hash && (
-                  <p className="mt-1 text-sm text-error-600">{errors.hash.message}</p>
+                {errors.documentId && (
+                  <p className="mt-1 text-sm text-error-600">{errors.documentId.message}</p>
                 )}
               </div>
 
@@ -225,25 +203,25 @@ const Verify: React.FC = () => {
               Check Verification Status
             </h3>
             <p className="text-gray-600 mb-6">
-              Check the current verification status of a document.
+              Check the current verification status of a document using its hash.
             </p>
             
             <form onSubmit={handleSubmit(onStatusSubmit)} className="space-y-4">
               <div>
                 <label htmlFor="documentId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Document ID
+                  Document Hash
                 </label>
                 <input
                   {...register('documentId', {
-                    required: 'Document ID is required',
-                    minLength: {
-                      value: 10,
-                      message: 'Document ID must be at least 10 characters',
+                    required: 'Document hash is required',
+                    pattern: {
+                      value: /^[a-fA-F0-9]{16,64}$/,
+                      message: 'Hash must be a valid hexadecimal string',
                     },
                   })}
                   type="text"
-                  className="input w-full"
-                  placeholder="Enter document ID"
+                  className="input w-full font-mono"
+                  placeholder="Enter document hash"
                 />
                 {errors.documentId && (
                   <p className="mt-1 text-sm text-error-600">{errors.documentId.message}</p>
@@ -345,19 +323,19 @@ const Verify: React.FC = () => {
             <form onSubmit={handleSubmit(onIntegritySubmit)} className="space-y-4">
               <div>
                 <label htmlFor="documentId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Document ID
+                  Document Hash
                 </label>
                 <input
                   {...register('documentId', {
-                    required: 'Document ID is required',
-                    minLength: {
-                      value: 10,
-                      message: 'Document ID must be at least 10 characters',
+                    required: 'Document hash is required',
+                    pattern: {
+                      value: /^[a-fA-F0-9]{16,64}$/,
+                      message: 'Hash must be a valid hexadecimal string',
                     },
                   })}
                   type="text"
-                  className="input w-full"
-                  placeholder="Enter document ID"
+                  className="input w-full font-mono"
+                  placeholder="Enter document hash"
                 />
                 {errors.documentId && (
                   <p className="mt-1 text-sm text-error-600">{errors.documentId.message}</p>

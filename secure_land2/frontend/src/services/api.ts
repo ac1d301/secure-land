@@ -19,13 +19,13 @@ class ApiService {
   private api: AxiosInstance;
 
   constructor() {
-    this.api = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  this.api = axios.create({
+    baseURL: ((import.meta as any).env?.VITE_API_BASE_URL) || 'http://localhost:5000/api',
+    timeout: 10000,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
     // Request interceptor to add auth token
     this.api.interceptors.request.use(
@@ -139,10 +139,10 @@ class ApiService {
   }
 
   // Verification endpoints
-  async verifyDocumentHash(documentId: string, hash: string): Promise<{ verified: boolean; message: string }> {
+  async verifyDocumentHash(documentId: string): Promise<{ verified: boolean; message: string }> {
     const response = await this.api.post<ApiResponse<{ verified: boolean; message: string }>>(
       `/verify/${documentId}`,
-      { hash }
+      {}
     );
     return response.data.data!;
   }

@@ -12,8 +12,10 @@ import {
   Filter,
   Download,
   Eye,
-  MoreVertical
+  MoreVertical,
+  Copy
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import UploadForm from '../components/UploadForm';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -39,8 +41,10 @@ const Dashboard: React.FC = () => {
         page: result.page,
         pages: result.pages,
       });
+      // Stats will be recalculated automatically when documents change
     } catch (error) {
       console.error('Failed to load documents:', error);
+      toast.error('Failed to load documents. Please try again.');
     }
   };
 
@@ -99,36 +103,47 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  const stats = [
-    {
-      label: 'Total Documents',
-      value: pagination.total,
-      icon: FileText,
-      color: 'text-primary-600',
-      bgColor: 'bg-primary-100',
-    },
-    {
-      label: 'Verified',
-      value: documents.filter(doc => doc.status === 'Verified').length,
-      icon: CheckCircle,
-      color: 'text-success-600',
-      bgColor: 'bg-success-100',
-    },
-    {
-      label: 'Pending',
-      value: documents.filter(doc => doc.status === 'Pending').length,
-      icon: Clock,
-      color: 'text-warning-600',
-      bgColor: 'bg-warning-100',
-    },
-    {
-      label: 'Rejected',
-      value: documents.filter(doc => doc.status === 'Rejected').length,
-      icon: XCircle,
-      color: 'text-error-600',
-      bgColor: 'bg-error-100',
-    },
-  ];
+  // Calculate stats based on current documents
+  const calculateStats = () => {
+    const total = documents.length;
+    const verified = documents.filter(doc => doc.status === 'Verified').length;
+    const pending = documents.filter(doc => doc.status === 'Pending').length;
+    const rejected = documents.filter(doc => doc.status === 'Rejected').length;
+
+    return [
+      {
+        label: 'Total Documents',
+        value: total,
+        icon: FileText,
+        color: 'text-primary-600',
+        bgColor: 'bg-primary-100',
+      },
+      {
+        label: 'Verified',
+        value: verified,
+        icon: CheckCircle,
+        color: 'text-success-600',
+        bgColor: 'bg-success-100',
+      },
+      {
+        label: 'Pending',
+        value: pending,
+        icon: Clock,
+        color: 'text-warning-600',
+        bgColor: 'bg-warning-100',
+      },
+      {
+        label: 'Rejected',
+        value: rejected,
+        icon: XCircle,
+        color: 'text-error-600',
+        bgColor: 'bg-error-100',
+      },
+    ];
+  };
+
+  // Get current stats
+  const stats = calculateStats();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -244,6 +259,9 @@ const Dashboard: React.FC = () => {
                       Property ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Document Hash
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -280,6 +298,23 @@ const Dashboard: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 font-mono">
                           {document.propertyId}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 font-mono">
+                          <span title={document.hash}>
+                            {document.hash?.substring(0, 8)}...{document.hash?.substring(document.hash.length - 8)}
+                          </span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(document.hash);
+                              toast.success('Hash copied to clipboard!');
+                            }}
+                            className="ml-2 text-primary-600 hover:text-primary-800"
+                            title="Copy full hash"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

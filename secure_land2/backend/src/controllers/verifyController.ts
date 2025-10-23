@@ -7,34 +7,22 @@ import BlockchainService from '../services/blockchainService';
 export const verifyDocument = async (req: Request, res: Response): Promise<void> => {
     try {
       const { documentId } = req.params;
-      const { hash } = req.body;
 
       if (!documentId) {
-        ResponseHandler.error(res, 'Document ID is required', 400);
-        return;
-      }
-      const docId = String(documentId);
-
-      if (!hash) {
         ResponseHandler.error(res, 'Document hash is required', 400);
         return;
       }
+      const documentHash = String(documentId);
 
-      // Get document from database
-      const document = await DocumentService.getDocumentById(docId);
+      // Get document from database by hash
+      const document = await DocumentService.getDocumentByHash(documentHash);
       if (!document) {
-        ResponseHandler.notFound(res, 'Document not found');
+        ResponseHandler.notFound(res, 'Document not found with the provided hash');
         return;
       }
 
-      // Verify hash matches
-      if (document.hash !== hash) {
-        ResponseHandler.error(res, 'Document hash does not match', 400);
-        return;
-      }
-
-      // Verify on blockchain
-      const isVerified = await BlockchainService.verifyDocumentHash(docId, hash);
+      // Verify on blockchain using the document's stored hash
+      const isVerified = await BlockchainService.verifyDocumentHash(document._id.toString(), document.hash);
 
       if (!isVerified) {
         ResponseHandler.error(res, 'Document verification failed on blockchain', 400);
@@ -42,9 +30,12 @@ export const verifyDocument = async (req: Request, res: Response): Promise<void>
       }
 
       ResponseHandler.success(res, {
-        documentId,
-        hash,
+        documentId: document._id,
+        hash: document.hash,
         verified: true,
+        status: document.status,
+        propertyId: document.propertyId,
+        verificationDate: document.verificationDate,
         message: 'Document verified successfully'
       }, 'Document verification successful');
     } catch (error: any) {
@@ -57,24 +48,25 @@ export const getVerificationStatus = async (req: Request, res: Response): Promis
     try {
       const { documentId } = req.params;
       if (!documentId) {
-        ResponseHandler.error(res, 'Document ID is required', 400);
+        ResponseHandler.error(res, 'Document hash is required', 400);
         return;
       }
-      const docId = String(documentId);
+      const documentHash = String(documentId);
 
-      const document = await DocumentService.getDocumentById(docId);
+      // Get document from database by hash
+      const document = await DocumentService.getDocumentByHash(documentHash);
       if (!document) {
         ResponseHandler.notFound(res, 'Document not found');
         return;
       }
 
-      // Get hash from blockchain
-      const blockchainHash = await BlockchainService.getDocumentHash(docId);
+      // Get hash from blockchain using the actual document ID
+      const blockchainHash = await BlockchainService.getDocumentHash(document._id.toString());
       const isOnBlockchain = blockchainHash !== null;
       const hashMatches = blockchainHash === document.hash;
 
       ResponseHandler.success(res, {
-        documentId: docId,
+        documentId: document._id,
         status: document.status,
         hash: document.hash,
         blockchainHash,
@@ -132,19 +124,20 @@ export const verifyDocumentIntegrity = async (req: Request, res: Response): Prom
     try {
       const { documentId } = req.params;
       if (!documentId) {
-        ResponseHandler.error(res, 'Document ID is required', 400);
+        ResponseHandler.error(res, 'Document hash is required', 400);
         return;
       }
-      const docId = String(documentId);
+      const documentHash = String(documentId);
 
-      const document = await DocumentService.getDocumentById(docId);
+      // Get document from database by hash
+      const document = await DocumentService.getDocumentByHash(documentHash);
       if (!document) {
         ResponseHandler.notFound(res, 'Document not found');
         return;
       }
 
-      // Check if document exists on blockchain
-      const blockchainHash = await BlockchainService.getDocumentHash(docId);
+      // Check if document exists on blockchain using the actual document ID
+      const blockchainHash = await BlockchainService.getDocumentHash(document._id.toString());
       const isOnBlockchain = blockchainHash !== null;
       const hashMatches = blockchainHash === document.hash;
 
@@ -159,7 +152,7 @@ export const verifyDocumentIntegrity = async (req: Request, res: Response): Prom
       }
 
       ResponseHandler.success(res, {
-        documentId: docId,
+        documentId: document._id,
         integrityStatus,
         isOnBlockchain,
         hashMatches,

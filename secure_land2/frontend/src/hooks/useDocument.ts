@@ -107,10 +107,10 @@ export const useDocument = () => {
     }
   }, []);
 
-  const verifyDocumentHash = useCallback(async (documentId: string, hash: string) => {
+  const verifyDocumentHash = useCallback(async (documentId: string) => {
     try {
       setIsLoading(true);
-      const result = await apiService.verifyDocumentHash(documentId, hash);
+      const result = await apiService.verifyDocumentHash(documentId);
       if (result.verified) {
         toast.success('Document hash verified successfully!');
       } else {

@@ -136,7 +136,12 @@ export class DocumentController {
   static async getDocumentById(req: Request, res: Response): Promise<void> {
     try {
       const { documentId } = req.params;
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?.id || '';
+
+      if (!documentId) {
+        ResponseHandler.error(res, 'Document ID is required', 400);
+        return;
+      }
 
       const document = await DocumentService.getDocumentById(documentId, userId);
 
@@ -156,6 +161,11 @@ export class DocumentController {
     try {
       const { hash } = req.params;
 
+      if (!hash) {
+        ResponseHandler.error(res, 'Document hash is required', 400);
+        return;
+      }
+
       const document = await DocumentService.getDocumentByHash(hash);
 
       if (!document) {
@@ -172,10 +182,25 @@ export class DocumentController {
 
   static async verifyDocument(req: Request, res: Response): Promise<void> {
     try {
-      const { documentId } = req.params;
-      const verifiedBy = (req as any).user.id;
+      const documentId = req.params.documentId?.trim();
+      const verifiedBy = (req as any).user?.id;
+
+      if (!documentId || !verifiedBy) {
+        ResponseHandler.error(res, 'Document ID and verifier ID are required', 400);
+        return;
+      }
+
+      if (documentId.length < 3) {
+        ResponseHandler.error(res, 'Invalid document ID', 400);
+        return;
+      }
 
       const document = await DocumentService.verifyDocument(documentId, verifiedBy);
+      
+      if (!document) {
+        ResponseHandler.notFound(res, 'Document not found');
+        return;
+      }
 
       if (!document) {
         ResponseHandler.notFound(res, 'Document not found');
@@ -224,7 +249,12 @@ export class DocumentController {
     try {
       const { documentId } = req.params;
       const { reason } = req.body;
-      const rejectedBy = (req as any).user.id;
+      const rejectedBy = (req as any).user?.id;
+
+      if (!documentId || !rejectedBy) {
+        ResponseHandler.error(res, 'Document ID and rejector ID are required', 400);
+        return;
+      }
 
       if (!reason) {
         ResponseHandler.error(res, 'Rejection reason is required', 400);
