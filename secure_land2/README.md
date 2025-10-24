@@ -2,7 +2,7 @@
 
 A comprehensive full-stack application that prevents document forgery and ensures immutability using Ethereum smart contracts, IPFS, Node.js, MongoDB, and React.
 
-## 🏗️ Architecture
+## Architecture
 
 - **Frontend:** React + Vite + TypeScript + TailwindCSS
 - **Backend:** Node.js + Express + TypeScript + MongoDB (Mongoose)
@@ -11,7 +11,7 @@ A comprehensive full-stack application that prevents document forgery and ensure
 - **Notifications:** Nodemailer (Mailtrap simulation proxy)
 - **Hashing:** SHA-256
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js (v18+)
@@ -50,7 +50,7 @@ npx hardhat compile
 npx hardhat run scripts/deploy.js --network sepolia
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 secure-land/
@@ -60,7 +60,7 @@ secure-land/
 └── README.md
 ```
 
-## 🔧 Environment Variables
+## Environment Variables
 
 ### Backend (.env)
 ```
@@ -81,7 +81,7 @@ PORT=5000
 VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
-## 🌐 API Endpoints
+## API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - User registration
@@ -100,13 +100,13 @@ VITE_API_BASE_URL=http://localhost:5000/api
 ### Notifications
 - `POST /api/notify` - Send notification (stub)
 
-## 🔐 User Roles
+## User Roles
 
 - **Buyer:** Can view and verify documents
 - **Seller:** Can upload and manage documents
 - **Official:** Can verify and approve documents
 
-## 🛡️ Security Features
+## Security Features
 
 - JWT-based authentication
 - SHA-256 document hashing
@@ -115,7 +115,7 @@ VITE_API_BASE_URL=http://localhost:5000/api
 - Role-based access control
 - Comprehensive audit logging
 
-## 📱 Features
+## Features
 
 - Document upload and verification
 - Real-time verification status
@@ -124,7 +124,7 @@ VITE_API_BASE_URL=http://localhost:5000/api
 - Responsive web interface
 - Email notifications (simulated)
 
-## 🚀 Deployment
+## Deployment
 
 ### Backend (Render)
 1. Connect GitHub repository
@@ -140,6 +140,6 @@ VITE_API_BASE_URL=http://localhost:5000/api
 1. Deploy using Hardhat
 2. Update contract address in backend .env
 
-## 📄 License
+## License
 
 MIT License - see LICENSE file for details

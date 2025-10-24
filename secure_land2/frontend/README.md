@@ -2,7 +2,7 @@
 
 React frontend for the Secure Land blockchain-based land document verification platform.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js (v18+)
@@ -26,14 +26,14 @@ cp env.example .env
 npm run dev
 ```
 
-## 🔧 Environment Variables
+## Environment Variables
 
 ```env
 # API Configuration
 VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
-## 📚 Features
+## Features
 
 ### Authentication
 - User registration and login
@@ -59,7 +59,7 @@ VITE_API_BASE_URL=http://localhost:5000/api
 - Audit trail
 - Statistics dashboard
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **React 18** - UI library
 - **TypeScript** - Type safety
@@ -71,7 +71,7 @@ VITE_API_BASE_URL=http://localhost:5000/api
 - **Lucide React** - Icons
 - **React Hot Toast** - Notifications
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -85,7 +85,7 @@ src/
 └── main.tsx            # Entry point
 ```
 
-## 🎨 UI Components
+## UI Components
 
 ### Design System
 - Consistent color palette
@@ -99,21 +99,21 @@ src/
 - `Navbar` - Navigation with role-based menu
 - Form components with validation
 
-## 🔐 Authentication Flow
+## Authentication Flow
 
 1. **Registration**: Users can register with email, password, and role
 2. **Login**: JWT-based authentication with role checking
 3. **Protected Routes**: Role-based access to different pages
 4. **Token Management**: Automatic token refresh and logout
 
-## 📱 Responsive Design
+## Responsive Design
 
 - Mobile-first approach
 - Breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px)
 - Touch-friendly interfaces
 - Optimized for all screen sizes
 
-## 🧪 Development
+## Development
 
 ### Scripts
 - `npm run dev` - Start development server
@@ -127,7 +127,7 @@ src/
 - Prettier formatting
 - Consistent naming conventions
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Build
 ```bash
@@ -145,7 +145,7 @@ npm run build
 - **AWS S3 + CloudFront**
 - **GitHub Pages**
 
-## 🔧 Configuration
+## Configuration
 
 ### Vite Configuration
 - Path aliases (`@/` for `src/`)
@@ -159,7 +159,7 @@ npm run build
 - Component classes
 - Responsive breakpoints
 
-## 📊 Performance
+## Performance
 
 ### Optimizations
 - Code splitting with React.lazy
@@ -173,7 +173,7 @@ npm run build
 - User analytics
 - API response times
 
-## 🧪 Testing
+## Testing
 
 ### Test Setup
 ```bash
@@ -190,7 +190,7 @@ npm test
 - Integration tests
 - E2E tests with Playwright
 
-## 🔒 Security
+## Security
 
 ### Best Practices
 - Input validation
@@ -205,7 +205,7 @@ npm test
 - Resource integrity
 - Safe inline styles
 
-## 📈 Analytics
+## Analytics
 
 ### User Tracking
 - Page views
@@ -219,7 +219,7 @@ npm test
 - User engagement
 - Feature usage
 
-## 🐛 Debugging
+## Debugging
 
 ### Development Tools
 - React DevTools
@@ -233,7 +233,7 @@ npm test
 - User-friendly error messages
 - Error reporting
 
-## 📚 Documentation
+## Documentation
 
 ### API Documentation
 - Swagger/OpenAPI integration
@@ -247,7 +247,7 @@ npm test
 - FAQ section
 - Video tutorials
 
-## 🤝 Contributing
+## Contributing
 
 ### Development Workflow
 1. Fork the repository
@@ -262,6 +262,6 @@ npm test
 - Write comprehensive tests
 - Update documentation
 
-## 📄 License
+## License
 
 MIT License - see LICENSE file for details

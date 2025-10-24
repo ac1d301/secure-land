@@ -11,10 +11,10 @@ const startServer = async (): Promise<void> => {
     
     // Start the server
     app.listen(PORT, () => {
-      logger.info(`🚀 Server running on port ${PORT}`);
-      logger.info(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-      logger.info(`🌐 Health check: http://localhost:${PORT}/health`);
-      logger.info(`📚 API Documentation: http://localhost:${PORT}/api`);
+      logger.info(`Server running on port ${PORT}`);
+      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`Health check: http://localhost:${PORT}/health`);
+      logger.info(`API Documentation: http://localhost:${PORT}/api`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

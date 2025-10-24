@@ -24,22 +24,11 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
     not_recorded: 'bg-yellow-100 text-yellow-800'
   };
 
-  const icons = {
-    pending: '⏳',
-    verified: '✅',
-    rejected: '❌',
-    archived: '📦',
-    tampered: '⚠️',
-    unavailable: '🔗',
-    not_recorded: '📝'
-  };
-
   const classes = `${baseClasses} ${sizes[size]} ${variants[status]}`;
 
   return (
     <span className={classes}>
-      <span className="mr-1">{icons[status]}</span>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
     </span>
   );
 };

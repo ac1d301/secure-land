@@ -39,7 +39,7 @@ export default class MockIPFSService {
 
       const url = this.getIPFSURL(cid);
 
-      logger.info('📁 Mock IPFS: File uploaded successfully', {
+      logger.info('Mock IPFS: File uploaded successfully', {
         fileName,
         cid: cid.slice(0, 10) + '...',
         size: file.length,
@@ -49,7 +49,7 @@ export default class MockIPFSService {
 
       return { cid, size: file.length, url };
     } catch (error) {
-      logger.error('📁 Mock IPFS: Upload failed:', error);
+      logger.error('Mock IPFS: Upload failed:', error);
       throw new Error(`Mock IPFS upload failed: ${error}`);
     }
   }
@@ -58,7 +58,7 @@ export default class MockIPFSService {
     await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 300));
     const exists = mockIPFSStorage.has(cid);
 
-    logger.debug('📁 Mock IPFS: Availability check', {
+    logger.debug('Mock IPFS: Availability check', {
       cid: cid.slice(0, 10) + '...',
       available: exists,
       provider: 'mock-ipfs'
@@ -91,7 +91,7 @@ export default class MockIPFSService {
     const delay = Math.min(200 + (stored.content.length / 1024), 2000);
     await new Promise(resolve => setTimeout(resolve, delay));
 
-    logger.info('📁 Mock IPFS: File downloaded', {
+    logger.info('Mock IPFS: File downloaded', {
       cid: cid.slice(0, 10) + '...',
       size: stored.content.length
     });
@@ -134,7 +134,7 @@ export default class MockIPFSService {
 
   static clearAllData(): void {
     mockIPFSStorage.clear();
-    logger.info('📁 Mock IPFS: All data cleared');
+    logger.info('Mock IPFS: All data cleared');
   }
 
   static getStats(): {

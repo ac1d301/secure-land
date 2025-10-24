@@ -49,7 +49,7 @@ export class DocumentIntegrityService {
     };
 
     try {
-      logger.info('🔍 Starting comprehensive integrity check', { documentId });
+      logger.info('Starting comprehensive integrity check', { documentId });
 
       // Step 1: Check document exists in database
       const document = await DocumentService.getDocumentById(documentId);
@@ -129,7 +129,7 @@ export class DocumentIntegrityService {
         }
       }
 
-      logger.info('✅ Integrity check completed', {
+      logger.info('Integrity check completed', {
         documentId,
         status: result.overallStatus,
         errorCount: result.errors.length,
@@ -138,7 +138,7 @@ export class DocumentIntegrityService {
 
       return result;
     } catch (error) {
-      logger.error('❌ Integrity check failed:', error);
+      logger.error('Integrity check failed:', error);
       result.errors.push(`Integrity check failed: ${error instanceof Error ? error.message : String(error)}`);
       result.overallStatus = 'error';
       return result;
@@ -174,7 +174,7 @@ export class DocumentIntegrityService {
       results
     };
 
-    logger.info('✅ Batch integrity check completed', summary);
+    logger.info('Batch integrity check completed', summary);
 
     return summary;
   }
@@ -196,12 +196,12 @@ export class DocumentIntegrityService {
       // Perform batch check
       await this.performBatchIntegrityCheck(documentIds);
 
-      logger.info('📅 Scheduled integrity check completed', {
+      logger.info('Scheduled integrity check completed', {
         propertyId,
         documentCount: documentIds.length
       });
     } catch (error) {
-      logger.error('❌ Scheduled integrity check failed:', error);
+      logger.error('Scheduled integrity check failed:', error);
     }
   }
 }

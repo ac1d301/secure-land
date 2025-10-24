@@ -35,7 +35,7 @@ export const uploadToIPFS = async (file: Buffer, fileName: string): Promise<stri
   const proxyMode = process.env.PROXY_MODE || 'mock';
   
   if (proxyMode === 'mock') {
-    logger.info('📁 Mock IPFS: uploadToIPFS called - redirecting to IPFSService');
+    logger.info('Mock IPFS: uploadToIPFS called - redirecting to IPFSService');
     throw new Error('Use IPFSService.uploadFile instead in mock mode');
   }
 

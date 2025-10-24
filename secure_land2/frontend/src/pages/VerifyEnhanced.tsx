@@ -144,7 +144,7 @@ const VerifyEnhanced: React.FC = () => {
   const handleFileSelection = async (file: File) => {
     try {
       setLoading(true);
-      toast('Computing file hash...', { icon: 'ℹ️' });
+      toast('Computing file hash...');
       
       const hash = await computeFileHash(file);
       setFileHash(hash);
@@ -176,7 +176,7 @@ const VerifyEnhanced: React.FC = () => {
         {/* Header Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            🔍 Document Verification
+            Document Verification
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Verify the authenticity and integrity of your land documents using our blockchain-based verification system
@@ -188,9 +188,9 @@ const VerifyEnhanced: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             <div className="flex border-b border-gray-200">
               {[
-                { key: 'id', label: 'Document ID', icon: '🆔' },
-                { key: 'hash', label: 'Document Hash', icon: '🔐' },
-                { key: 'file', label: 'Upload File', icon: '📄' }
+                { key: 'id', label: 'Document ID', icon: 'ID' },
+                { key: 'hash', label: 'Document Hash', icon: '#' },
+                { key: 'file', label: 'Upload File', icon: '↑' }
               ].map((mode) => (
                 <button
                   key={mode.key}
@@ -323,8 +323,7 @@ const VerifyEnhanced: React.FC = () => {
         {(verificationResult || integrityResult) && (
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <span className="mr-3">📋</span>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Verification Results
               </h2>
 
@@ -332,15 +331,13 @@ const VerifyEnhanced: React.FC = () => {
               {verificationResult?.verified ? (
                 <div className="mb-8">
                   <div className="text-center p-8 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200">
-                    <div className="text-6xl mb-4">✅</div>
-                    <div className="text-2xl font-bold text-green-900 mb-2">Document Verified Successfully!</div>
+                    <div className="text-2xl font-bold text-green-900 mb-2">Document Verified Successfully</div>
                     <p className="text-green-700">This document exists in our secure database and its integrity is confirmed.</p>
                   </div>
                 </div>
               ) : (
                 <div className="mb-8">
                   <div className="text-center p-8 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border-2 border-red-200">
-                    <div className="text-6xl mb-4">❌</div>
                     <div className="text-2xl font-bold text-red-900 mb-2">Document Not Found</div>
                     <p className="text-red-700">This document could not be verified in our system.</p>
                   </div>
@@ -395,9 +392,9 @@ const VerifyEnhanced: React.FC = () => {
                         )}
                         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                           <p className="text-xs text-blue-800">
-                            ✓ Document hash verified in secure database<br/>
-                            ✓ Document integrity confirmed<br/>
-                            ✓ All security checks passed
+                            Document hash verified in secure database<br/>
+                            Document integrity confirmed<br/>
+                            All security checks passed
                           </p>
                         </div>
                       </div>
@@ -460,7 +457,7 @@ const VerifyEnhanced: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🆔</span>
+                  <span className="text-2xl font-bold">ID</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">By Document ID</h3>
                 <p className="text-sm text-gray-600">
@@ -469,7 +466,7 @@ const VerifyEnhanced: React.FC = () => {
               </div>
               <div className="text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🔐</span>
+                  <span className="text-2xl font-bold">#</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">By Hash</h3>
                 <p className="text-sm text-gray-600">
@@ -478,7 +475,7 @@ const VerifyEnhanced: React.FC = () => {
               </div>
               <div className="text-center">
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">📄</span>
+                  <span className="text-2xl font-bold">↑</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">By File</h3>
                 <p className="text-sm text-gray-600">

@@ -91,7 +91,7 @@ class IPFSService {
 
       const url = this.getIPFSURL(cid);
 
-      logger.info('📁 Mock IPFS: File uploaded successfully', {
+      logger.info('Mock IPFS: File uploaded successfully', {
         fileName,
         cid: cid.slice(0, 10),
         size: file.length,
@@ -100,7 +100,7 @@ class IPFSService {
 
       return { cid, size: file.length, url };
     } catch (error) {
-      logger.error('📁 Mock IPFS: Upload failed:', error);
+      logger.error('Mock IPFS: Upload failed:', error);
       throw new Error(`Mock IPFS upload failed: ${error}`);
     }
   }
@@ -110,7 +110,7 @@ class IPFSService {
       const finalFileName = metadata ? `${fileName}_${JSON.stringify(metadata)}` : fileName;
       return await this.uploadFile(file, finalFileName);
     } catch (error) {
-      logger.error('📁 Mock IPFS: Document upload failed:', error);
+      logger.error('Mock IPFS: Document upload failed:', error);
       throw error;
     }
   }
@@ -121,7 +121,7 @@ class IPFSService {
       await wait(Math.min(delay, 500));
     }
     const exists = mockIPFSStorage.has(cid);
-    logger.debug('📁 Mock IPFS: Availability check', {
+    logger.debug('Mock IPFS: Availability check', {
       cid: cid.slice(0, 10),
       available: exists
     });
@@ -149,7 +149,7 @@ class IPFSService {
     if (delay > 0) {
       await wait(delay);
     }
-    logger.info('📁 Mock IPFS: File downloaded', {
+    logger.info('Mock IPFS: File downloaded', {
       cid: cid.slice(0, 10),
       size: stored.metadata.size
     });
@@ -169,7 +169,7 @@ class IPFSService {
       const cidPattern = /^(Qm[1-9A-HJ-NP-Za-km-z]{44}|bafy[a-z0-9]{50,})$/;
       return cidPattern.test(cid);
     } catch (error) {
-      logger.error('📁 Mock IPFS: CID validation failed:', error);
+      logger.error('Mock IPFS: CID validation failed:', error);
       return false;
     }
   }
@@ -190,7 +190,7 @@ class IPFSService {
 
   static clearAllData(): void {
     mockIPFSStorage.clear();
-    logger.info('📁 Mock IPFS: All data cleared');
+    logger.info('Mock IPFS: All data cleared');
   }
 
   static async healthCheck(): Promise<boolean> {

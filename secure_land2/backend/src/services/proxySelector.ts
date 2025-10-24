@@ -15,15 +15,15 @@ export function getBlockchainService() {
   switch (PROXY_MODE) {
     case 'external':
     case 'external-api':
-      logger.info('🔗 Blockchain: using external API proxy');
+      logger.info('Blockchain: using external API proxy');
       return ExternalBlockchainProxy;
     case 'ethers':
     case 'direct':
-      logger.info('🔗 Blockchain: using direct ethers provider');
+      logger.info('Blockchain: using direct ethers provider');
       return EthersBlockchainService;
     case 'mock':
     default:
-      logger.info('🔗 Blockchain: using mock service');
+      logger.info('Blockchain: using mock service');
       return MockBlockchainService;
   }
 }
@@ -32,21 +32,21 @@ export function getIPFSService() {
   switch (PROXY_MODE) {
     case 'external':
     case 'external-api':
-      logger.info('📁 IPFS: using external API proxy');
+      logger.info('IPFS: using external API proxy');
       return ExternalIPFSProxy;
     case 'real':
     case 'native':
-      logger.info('📁 IPFS: using native IPFS service');
+      logger.info('IPFS: using native IPFS service');
       return RealIPFSService;
     case 'mock':
     default:
-      logger.info('📁 IPFS: using mock IPFS service');
+      logger.info('IPFS: using mock IPFS service');
       return MockIPFSService;
   }
 }
 
 export async function initializeProxyServices(): Promise<void> {
-  logger.info(`🚀 Initializing services in ${PROXY_MODE.toUpperCase()} mode`);
+  logger.info(`Initializing services in ${PROXY_MODE.toUpperCase()} mode`);
 
   try {
     if (PROXY_MODE === 'external' || PROXY_MODE === 'external-api') {
@@ -62,9 +62,9 @@ export async function initializeProxyServices(): Promise<void> {
       }
     }
 
-    logger.info('✅ Proxy services initialized successfully');
+    logger.info('Proxy services initialized successfully');
   } catch (error) {
-    logger.error('❌ Proxy service initialization failed:', error);
+    logger.error('Proxy service initialization failed:', error);
     throw error;
   }
 }

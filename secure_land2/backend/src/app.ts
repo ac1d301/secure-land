@@ -61,9 +61,9 @@ app.use(async (req, res, next) => {
     try {
       await initializeProxyServices();
       req.app.locals.proxyInitialized = true;
-      logger.info(`🚀 Proxy services initialized in ${getCurrentProxyMode().toUpperCase()} mode`);
+      logger.info(`Proxy services initialized in ${getCurrentProxyMode().toUpperCase()} mode`);
     } catch (error) {
-      logger.error('❌ Failed to initialize proxy services:', error);
+      logger.error('Failed to initialize proxy services:', error);
     }
   }
   next();

@@ -239,14 +239,14 @@ class BlockchainService {
 
   static async waitForConfirmation(txHash: string, confirmations = 3): Promise<any> {
     await this.initialize();
-    logger.info('⏳ Mock Blockchain: Waiting for confirmations', { 
+    logger.info('Mock Blockchain: Waiting for confirmations', { 
       txHash: txHash.slice(0, 10) + '...',
       confirmations 
     });
     
     for (let i = 1; i <= confirmations; i++) {
       await this.simulateDelay();
-      logger.info(`✅ Mock Blockchain: Confirmation ${i}/${confirmations}`);
+      logger.info(`Mock Blockchain: Confirmation ${i}/${confirmations}`);
     }
     
     return {

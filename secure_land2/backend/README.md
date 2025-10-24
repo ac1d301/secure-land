@@ -2,7 +2,7 @@
 
 Backend API for the Secure Land blockchain-based land document verification platform.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js (v18+)
@@ -28,7 +28,7 @@ cp env.example .env
 npm run dev
 ```
 
-## 🔧 Environment Variables
+## Environment Variables
 
 ```env
 # Database
@@ -55,7 +55,7 @@ PORT=5000
 NODE_ENV=development
 ```
 
-## 📚 API Endpoints
+## API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - User registration
@@ -86,13 +86,13 @@ NODE_ENV=development
 - `POST /api/notify/test` - Test email (Officials only)
 - `GET /api/notify/status` - Get notification status (Officials only)
 
-## 🔐 User Roles
+## User Roles
 
 - **Buyer**: Can view and verify documents
 - **Seller**: Can upload and manage documents
 - **Official**: Can verify, reject, and manage all documents
 
-## 🛡️ Security Features
+## Security Features
 
 - JWT-based authentication
 - Role-based access control
@@ -102,7 +102,7 @@ NODE_ENV=development
 - Input validation
 - File upload restrictions
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -117,7 +117,7 @@ src/
 └── server.ts        # Server entry point
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run tests
@@ -127,7 +127,7 @@ npm test
 npm run test:watch
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Build
 ```bash
@@ -141,14 +141,14 @@ npm start
 3. Set up production Infura and Pinata credentials
 4. Configure email service for production
 
-## 📊 Monitoring
+## Monitoring
 
 - Health check: `GET /health`
 - Request logging with Morgan
 - Error logging with custom logger
 - Audit trail for all actions
 
-## 🔧 Development
+## Development
 
 ### Scripts
 - `npm run dev` - Start development server with hot reload

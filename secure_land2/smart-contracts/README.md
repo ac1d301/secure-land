@@ -2,7 +2,7 @@
 
 Solidity smart contracts for the Secure Land blockchain-based land document verification platform.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js (v18+)
@@ -28,7 +28,7 @@ cp env.example .env
 npm run compile
 ```
 
-## 🔧 Environment Variables
+## Environment Variables
 
 ```env
 # Infura Configuration
@@ -45,7 +45,7 @@ ETHERSCAN_API_KEY=your_etherscan_api_key_here
 REPORT_GAS=true
 ```
 
-## 📦 Contract Features
+## Contract Features
 
 ### SecureLand.sol
 - Document hash recording and verification
@@ -61,7 +61,7 @@ REPORT_GAS=true
 - `addOfficial()` - Add new official (Owner only)
 - `removeOfficial()` - Remove official (Owner only)
 
-## 🚀 Deployment
+## Deployment
 
 ### Local Development
 ```bash
@@ -84,7 +84,7 @@ npm run deploy:sepolia
 npm run verify:sepolia <CONTRACT_ADDRESS>
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run tests
@@ -94,7 +94,7 @@ npm test
 REPORT_GAS=true npm test
 ```
 
-## 📊 Gas Optimization
+## Gas Optimization
 
 The contract is optimized for gas efficiency:
 - Uses `bytes32` for hashes (32 bytes)
@@ -102,7 +102,7 @@ The contract is optimized for gas efficiency:
 - Efficient event logging
 - Optimized function visibility
 
-## 🔐 Security Features
+## Security Features
 
 - Role-based access control
 - Input validation
@@ -110,7 +110,7 @@ The contract is optimized for gas efficiency:
 - Immutable document storage
 - Event logging for transparency
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 smart-contracts/
@@ -124,7 +124,7 @@ smart-contracts/
 └── package.json
 ```
 
-## 🔧 Development
+## Development
 
 ### Scripts
 - `npm run compile` - Compile contracts
@@ -152,7 +152,7 @@ const isValid = await contract.verifyDocumentHash("doc123", ethers.keccak256(eth
 const hash = await contract.getDocumentHash("doc123");
 ```
 
-## 🌐 Network Configuration
+## Network Configuration
 
 ### Supported Networks
 - Hardhat (Local)
@@ -172,7 +172,7 @@ networks: {
 }
 ```
 
-## 📋 Deployment Checklist
+## Deployment Checklist
 
 - [ ] Set up environment variables
 - [ ] Compile contracts
@@ -182,7 +182,7 @@ networks: {
 - [ ] Update backend with contract address
 - [ ] Test end-to-end functionality
 
-## 🚨 Security Considerations
+## Security Considerations
 
 - Never commit private keys to version control
 - Use testnet for development
@@ -190,6 +190,6 @@ networks: {
 - Test thoroughly before mainnet deployment
 - Consider upgrade patterns for production
 
-## 📄 License
+## License
 
 MIT License - see LICENSE file for details
