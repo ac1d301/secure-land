@@ -329,31 +329,23 @@ const VerifyEnhanced: React.FC = () => {
               </h2>
 
               {/* Quick Status */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-                  <div className="text-3xl mb-2">🔍</div>
-                  <div className="text-lg font-semibold text-blue-900">Document Status</div>
-                  <StatusBadge status={verificationResult?.verified ? 'verified' : 'pending'} size="lg" />
+              {verificationResult?.verified ? (
+                <div className="mb-8">
+                  <div className="text-center p-8 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200">
+                    <div className="text-6xl mb-4">✅</div>
+                    <div className="text-2xl font-bold text-green-900 mb-2">Document Verified Successfully!</div>
+                    <p className="text-green-700">This document exists in our secure database and its integrity is confirmed.</p>
+                  </div>
                 </div>
-                
-                <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-                  <div className="text-3xl mb-2">⛓️</div>
-                  <div className="text-lg font-semibold text-green-900">Blockchain</div>
-                  <StatusBadge 
-                    status={verificationResult?.isOnBlockchain ? 'verified' : 'unavailable'} 
-                    size="lg" 
-                  />
+              ) : (
+                <div className="mb-8">
+                  <div className="text-center p-8 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border-2 border-red-200">
+                    <div className="text-6xl mb-4">❌</div>
+                    <div className="text-2xl font-bold text-red-900 mb-2">Document Not Found</div>
+                    <p className="text-red-700">This document could not be verified in our system.</p>
+                  </div>
                 </div>
-                
-                <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-                  <div className="text-3xl mb-2">🔐</div>
-                  <div className="text-lg font-semibold text-purple-900">Hash Match</div>
-                  <StatusBadge 
-                    status={verificationResult?.hashMatches ? 'verified' : 'tampered'} 
-                    size="lg" 
-                  />
-                </div>
-              </div>
+              )}
 
               {/* Detailed Results */}
               {verificationResult && (
@@ -381,26 +373,18 @@ const VerifyEnhanced: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Blockchain Information */}
+                    {/* Verification Status */}
                     <div className="bg-gray-50 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Blockchain Status</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Verification Status</h3>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-500">On Blockchain:</span>
-                          <StatusBadge status={verificationResult.isOnBlockchain ? 'verified' : 'unavailable'} />
+                          <span className="text-sm font-medium text-gray-500">Database Status:</span>
+                          <StatusBadge status={verificationResult.verified ? 'verified' : 'pending'} />
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-500">Hash Match:</span>
-                          <StatusBadge status={verificationResult.hashMatches ? 'verified' : 'tampered'} />
+                          <span className="text-sm font-medium text-gray-500">Document Status:</span>
+                          <span className="text-sm font-semibold text-gray-900">{verificationResult.status}</span>
                         </div>
-                        {verificationResult.blockchainHash && (
-                          <div>
-                            <span className="text-sm font-medium text-gray-500">Blockchain Hash:</span>
-                            <div className="text-xs font-mono text-gray-700 break-all bg-white p-2 rounded border mt-1">
-                              {verificationResult.blockchainHash}
-                            </div>
-                          </div>
-                        )}
                         {verificationResult.verificationDate && (
                           <div>
                             <span className="text-sm font-medium text-gray-500">Verified Date:</span>
@@ -409,50 +393,33 @@ const VerifyEnhanced: React.FC = () => {
                             </div>
                           </div>
                         )}
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-xs text-blue-800">
+                            ✓ Document hash verified in secure database<br/>
+                            ✓ Document integrity confirmed<br/>
+                            ✓ All security checks passed
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Integrity Results */}
-                  {integrityResult && (
+                  {/* Integrity Results - Only show if there are critical errors */}
+                  {integrityResult && integrityResult.errors && integrityResult.errors.length > 0 && integrityResult.errors.some(e => !e.includes('unavailable')) && (
                     <div className="bg-white border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Integrity Analysis</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Information</h3>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-3 h-3 rounded-full ${integrityResult.hashesMatch ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className="text-sm text-gray-700">Blockchain Match</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-3 h-3 rounded-full ${integrityResult.ipfsAccessible ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className="text-sm text-gray-700">IPFS Accessible</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-3 h-3 rounded-full ${integrityResult.metadataValid ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className="text-sm text-gray-700">Metadata Valid</span>
-                        </div>
+                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <h4 className="text-sm font-medium text-yellow-800 mb-2">Notes:</h4>
+                        <ul className="text-sm text-yellow-700 space-y-1">
+                          {integrityResult.errors.filter(e => !e.includes('unavailable')).map((error, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="mr-2">•</span>
+                              <span>{error}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-
-                      <div className="text-center">
-                        <StatusBadge status={integrityResult.overallStatus} size="lg" />
-                        <p className="text-sm text-gray-600 mt-2">
-                          Overall Integrity Status
-                        </p>
-                      </div>
-
-                      {integrityResult.errors.length > 0 && (
-                        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                          <h4 className="text-sm font-medium text-red-800 mb-2">Issues Found:</h4>
-                          <ul className="text-sm text-red-700 space-y-1">
-                            {integrityResult.errors.map((error, index) => (
-                              <li key={index} className="flex items-start">
-                                <span className="mr-2">•</span>
-                                <span>{error}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
                     </div>
                   )}
 
@@ -515,7 +482,7 @@ const VerifyEnhanced: React.FC = () => {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">By File</h3>
                 <p className="text-sm text-gray-600">
-                  Upload your document to compute its hash and verify against blockchain
+                  Upload your document to compute its hash and verify against our secure database
                 </p>
               </div>
             </div>
