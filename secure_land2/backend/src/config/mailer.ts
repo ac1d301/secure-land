@@ -32,7 +32,7 @@ export const getMailerConfig = (): MailerConfig => {
 // STUB: Mailtrap Email Simulation
 export const createTransporter = () => {
   const config = getMailerConfig();
-  return nodemailer.createTransporter(config);
+  return nodemailer.createTransport(config);
 };
 
 export default getMailerConfig;

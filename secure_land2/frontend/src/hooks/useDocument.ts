@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Document, DocumentUploadData, PaginatedResponse, VerificationStatus, DocumentIntegrity, OwnershipHistory } from '../types';
+import { DocumentUploadData } from '../types';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 

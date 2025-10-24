@@ -6,7 +6,6 @@ import {
   CheckCircle, 
   XCircle, 
   AlertTriangle, 
-  FileText, 
   Shield,
   Clock,
   Hash
@@ -28,7 +27,6 @@ const Verify: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm<VerifyFormData>();
 
   const onVerifySubmit = async (data: VerifyFormData) => {

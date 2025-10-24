@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useDocument } from '../hooks/useDocument';
-import { Document, PaginatedResponse } from '../types';
+import { Document } from '../types';
 import { 
   Shield, 
   FileText, 
@@ -9,13 +9,9 @@ import {
   Clock, 
   XCircle, 
   Search,
-  Filter,
   Eye,
   Check,
-  X,
-  Users,
-  Activity,
-  BarChart3
+  X
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 

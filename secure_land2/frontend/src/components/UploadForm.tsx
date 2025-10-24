@@ -24,10 +24,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onClose, onSuccess }) => {
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
   } = useForm<UploadFormData>();
-
-  const fileInput = watch('file');
 
   const onSubmit = async (data: UploadFormData) => {
     try {

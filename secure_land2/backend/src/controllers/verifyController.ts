@@ -9,26 +9,42 @@ export const verifyDocument = async (req: Request, res: Response): Promise<void>
       const { documentId } = req.params;
 
       if (!documentId) {
-        ResponseHandler.error(res, 'Document ID is required', 400);
+        ResponseHandler.error(res, 'Document hash is required', 400);
         return;
       }
 
-      // FIX: Get document by ID, not by hash
-      const document = await DocumentService.getDocumentById(documentId);
+      // Get document by hash (documentId is actually the hash from the frontend)
+      const document = await DocumentService.getDocumentByHash(documentId);
       if (!document) {
-        ResponseHandler.notFound(res, 'Document not found');
+        ResponseHandler.notFound(res, 'Document not found with the provided hash');
         return;
       }
 
-      // Verify on blockchain using document's hash
-      const isVerified = await BlockchainService.verifyDocumentHash(
-        document._id.toString(), 
-        document.hash
-      );
+      // Check if document is already on blockchain
+      const existingHash = await BlockchainService.getDocumentHash(document._id.toString());
+      
+      if (!existingHash) {
+        // Document not on blockchain yet, record it
+        const txHash = await BlockchainService.recordDocumentHash(
+          document._id.toString(),
+          document.hash
+        );
+        
+        // Update document with blockchain info
+        document.blockchain.txHash = txHash;
+        document.blockchain.isOnChain = true;
+        document.blockchain.lastVerified = new Date();
+      } else {
+        // Verify the hash matches
+        const isVerified = await BlockchainService.verifyDocumentHash(
+          document._id.toString(), 
+          document.hash
+        );
 
-      if (!isVerified) {
-        ResponseHandler.error(res, 'Document verification failed on blockchain', 400);
-        return;
+        if (!isVerified) {
+          ResponseHandler.error(res, 'Document hash mismatch on blockchain', 400);
+          return;
+        }
       }
 
       // Update document status
@@ -56,14 +72,14 @@ export const getVerificationStatus = async (req: Request, res: Response): Promis
       const { documentId } = req.params;
       
       if (!documentId) {
-        ResponseHandler.error(res, 'Document ID is required', 400);
+        ResponseHandler.error(res, 'Document hash is required', 400);
         return;
       }
 
-      // FIX: Get document by ID, not by hash
-      const document = await DocumentService.getDocumentById(documentId);
+      // Get document by hash (documentId is actually the hash from the frontend)
+      const document = await DocumentService.getDocumentByHash(documentId);
       if (!document) {
-        ResponseHandler.notFound(res, 'Document not found');
+        ResponseHandler.notFound(res, 'Document not found with the provided hash');
         return;
       }
 
@@ -132,12 +148,19 @@ export const verifyDocumentIntegrity = async (req: Request, res: Response): Prom
       const { documentId } = req.params;
       
       if (!documentId) {
-        ResponseHandler.error(res, 'Document ID is required', 400);
+        ResponseHandler.error(res, 'Document hash is required', 400);
         return;
       }
 
-      // FIX: Use DocumentService.verifyDocumentIntegrity method
-      const integrityResult = await DocumentService.verifyDocumentIntegrity(documentId);
+      // Get document by hash first
+      const document = await DocumentService.getDocumentByHash(documentId);
+      if (!document) {
+        ResponseHandler.notFound(res, 'Document not found with the provided hash');
+        return;
+      }
+
+      // Use the actual document ID for integrity check
+      const integrityResult = await DocumentService.verifyDocumentIntegrity(document._id);
 
       let status = 'unknown';
       if (integrityResult.blockchainMatch && integrityResult.ipfsAccessible) {

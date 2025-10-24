@@ -16,7 +16,7 @@ export interface RegisterData {
 }
 
 export interface AuthResult {
-  user: Omit<IUser, 'password'>;
+  user: any;
   token: string;
 }
 
@@ -110,7 +110,7 @@ export class AuthService {
     }
   }
 
-  static async getUserById(userId: string): Promise<Omit<IUser, 'password'> | null> {
+  static async getUserById(userId: string): Promise<any | null> {
     try {
       const user = await User.findById(userId);
       if (!user) {
@@ -125,7 +125,7 @@ export class AuthService {
     }
   }
 
-  static async updateUser(userId: string, updateData: Partial<RegisterData>): Promise<Omit<IUser, 'password'> | null> {
+  static async updateUser(userId: string, updateData: Partial<RegisterData>): Promise<any | null> {
     try {
       const user = await User.findByIdAndUpdate(
         userId,

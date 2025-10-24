@@ -7,8 +7,7 @@ import {
   Lock, 
   Users, 
   Globe,
-  ArrowRight,
-  Star
+  ArrowRight
 } from 'lucide-react';
 
 const Home: React.FC = () => {

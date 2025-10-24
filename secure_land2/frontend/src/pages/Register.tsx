@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../hooks/useAuth';
-import { Shield, Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react';
+import { Shield, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 interface RegisterFormData {

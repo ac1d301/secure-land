@@ -3,19 +3,15 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { 
   Home, 
-  Upload, 
   Search, 
-  Settings, 
   LogOut, 
   Menu, 
   X,
-  Shield,
-  FileText,
-  Users
+  Shield
 } from 'lucide-react';
 
 const Navbar: React.FC = () => {
-  const { user, logout, isOfficial, isSeller } = useAuth();
+  const { user, logout, isOfficial } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

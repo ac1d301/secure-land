@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useDocument } from '../hooks/useDocument';
-import { Document, PaginatedResponse } from '../types';
+import { Document } from '../types';
 import { 
   Upload, 
   FileText, 
@@ -9,7 +9,6 @@ import {
   Clock, 
   XCircle, 
   Search,
-  Filter,
   Download,
   Eye,
   MoreVertical,
