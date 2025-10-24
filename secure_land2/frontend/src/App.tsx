@@ -7,7 +7,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Verify from './pages/Verify';
+import VerifyEnhanced from './pages/VerifyEnhanced';
 import Admin from './pages/Admin';
+import AdminDashboard from './pages/AdminDashboard';
 import LoadingSpinner from './components/LoadingSpinner';
 
 function App() {
@@ -67,10 +69,18 @@ function App() {
             />
             <Route 
               path="/verify" 
+              element={isAuthenticated ? <VerifyEnhanced /> : <Navigate to="/login" replace />} 
+            />
+            <Route 
+              path="/verify-old" 
               element={isAuthenticated ? <Verify /> : <Navigate to="/login" replace />} 
             />
             <Route 
               path="/admin" 
+              element={isAuthenticated ? <AdminDashboard /> : <Navigate to="/login" replace />} 
+            />
+            <Route 
+              path="/admin-old" 
               element={isAuthenticated ? <Admin /> : <Navigate to="/login" replace />} 
             />
             <Route path="*" element={<Navigate to="/" replace />} />

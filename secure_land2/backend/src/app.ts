@@ -11,6 +11,8 @@ import documentRoutes from './routes/documentRoutes';
 import verifyRoutes from './routes/verifyRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import proxyRoutes from './routes/proxyRoutes';
+import adminRoutes from './routes/adminRoutes';
+import integrityRoutes from './routes/integrityRoutes';
 
 // Import middleware
 import { ResponseHandler } from './utils/responseHandler';
@@ -83,6 +85,8 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/verify', verifyRoutes);
 app.use('/api/notify', notificationRoutes);
 app.use('/api/proxy', proxyRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/integrity', integrityRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

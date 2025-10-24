@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { ResponseHandler } from '../utils/responseHandler';
 import { AuthRequest } from './authMiddleware';
 
-export type UserRole = 'Buyer' | 'Seller' | 'Official';
+export type UserRole = 'Buyer' | 'Seller' | 'Official' | 'Admin';
 
 export const requireRole = (allowedRoles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: Function): void => {

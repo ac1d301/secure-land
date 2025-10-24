@@ -901,6 +901,53 @@ export class DocumentService {
       throw new Error('Failed to retrieve documents by property');
     }
   }
+
+  /**
+   * Update document integrity status
+   */
+  static async updateIntegrityStatus(
+    documentId: string,
+    integrityData: {
+      lastCheck: Date;
+      status: string;
+      errors: string[];
+      warnings: string[];
+    }
+  ): Promise<void> {
+    try {
+      const document = await Document.findById(documentId);
+      if (!document) {
+        logger.warn('Document not found for integrity update:', { documentId });
+        return;
+      }
+
+      // Update blockchain verification data
+      document.blockchain.lastVerified = integrityData.lastCheck;
+      
+      // Store integrity status in metadata if needed
+      if (!document.metadata) {
+        document.metadata = {};
+      }
+      
+      document.metadata.integrityStatus = integrityData.status;
+      document.metadata.lastIntegrityCheck = integrityData.lastCheck;
+      document.metadata.integrityErrors = integrityData.errors;
+      document.metadata.integrityWarnings = integrityData.warnings;
+
+      await document.save();
+
+      logger.info('Document integrity status updated:', {
+        documentId,
+        status: integrityData.status
+      });
+    } catch (error) {
+      logger.error('Update integrity status failed:', {
+        documentId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      // Don't throw - this is a non-critical update
+    }
+  }
 }
 
 export default DocumentService;
