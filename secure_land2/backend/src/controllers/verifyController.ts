@@ -2,32 +2,39 @@ import { Request, Response } from 'express';
 import { ResponseHandler } from '../utils/responseHandler';
 import { logger } from '../utils/logger';
 import DocumentService from '../services/documentService';
-import { BlockchainService } from '../services/proxySelector';
+import BlockchainService from '../services/blockchainService';
 
 export const verifyDocument = async (req: Request, res: Response): Promise<void> => {
     try {
       const { documentId } = req.params;
 
       if (!documentId) {
-        ResponseHandler.error(res, 'Document hash is required', 400);
+        ResponseHandler.error(res, 'Document ID is required', 400);
         return;
       }
-      const documentHash = String(documentId);
 
-      // Get document from database by hash
-      const document = await DocumentService.getDocumentByHash(documentHash);
+      // FIX: Get document by ID, not by hash
+      const document = await DocumentService.getDocumentById(documentId);
       if (!document) {
-        ResponseHandler.notFound(res, 'Document not found with the provided hash');
+        ResponseHandler.notFound(res, 'Document not found');
         return;
       }
 
-      // Verify on blockchain using the document's stored hash
-      const isVerified = await BlockchainService.verifyDocumentHash(document._id.toString(), document.hash);
+      // Verify on blockchain using document's hash
+      const isVerified = await BlockchainService.verifyDocumentHash(
+        document._id.toString(), 
+        document.hash
+      );
 
       if (!isVerified) {
         ResponseHandler.error(res, 'Document verification failed on blockchain', 400);
         return;
       }
+
+      // Update document status
+      document.status = 'Verified';
+      document.verificationDate = new Date();
+      await document.save();
 
       ResponseHandler.success(res, {
         documentId: document._id,
@@ -36,34 +43,34 @@ export const verifyDocument = async (req: Request, res: Response): Promise<void>
         status: document.status,
         propertyId: document.propertyId,
         verificationDate: document.verificationDate,
-        message: 'Document verified successfully'
+        fileName: document.originalName
       }, 'Document verification successful');
     } catch (error: any) {
       logger.error('Document verification error:', error);
-      ResponseHandler.error(res, error.message, 500);
+      ResponseHandler.error(res, error.message || 'Internal server error', 500);
     }
   }
 
 export const getVerificationStatus = async (req: Request, res: Response): Promise<void> => {
     try {
       const { documentId } = req.params;
+      
       if (!documentId) {
-        ResponseHandler.error(res, 'Document hash is required', 400);
+        ResponseHandler.error(res, 'Document ID is required', 400);
         return;
       }
-      const documentHash = String(documentId);
 
-      // Get document from database by hash
-      const document = await DocumentService.getDocumentByHash(documentHash);
+      // FIX: Get document by ID, not by hash
+      const document = await DocumentService.getDocumentById(documentId);
       if (!document) {
         ResponseHandler.notFound(res, 'Document not found');
         return;
       }
 
-      // Get hash from blockchain using the actual document ID
+      // Check blockchain status
       const blockchainHash = await BlockchainService.getDocumentHash(document._id.toString());
       const isOnBlockchain = blockchainHash !== null;
-      const hashMatches = blockchainHash === document.hash;
+      const hashMatches = blockchainHash && blockchainHash.toLowerCase() === document.hash.toLowerCase();
 
       ResponseHandler.success(res, {
         documentId: document._id,
@@ -78,29 +85,25 @@ export const getVerificationStatus = async (req: Request, res: Response): Promis
       }, 'Verification status retrieved successfully');
     } catch (error: any) {
       logger.error('Get verification status error:', error);
-      ResponseHandler.error(res, error.message, 500);
+      ResponseHandler.error(res, error.message || 'Internal server error', 500);
     }
   }
 
 export const getOwnershipHistory = async (req: Request, res: Response): Promise<void> => {
     try {
       const { propertyId } = req.params;
-
-      // Get all documents for this property
-      const documents = await DocumentService.getAllDocuments(1, 100);
-      const propertyDocuments = documents.documents.filter(doc => doc.propertyId === propertyId);
-
-      // Sort by creation date
-      propertyDocuments.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-
+      
+      // Use the corrected DocumentService method
+      const documents = await DocumentService.getDocuments({ propertyId });
+      
       ResponseHandler.success(res, {
         propertyId,
-        documents: propertyDocuments,
-        totalDocuments: propertyDocuments.length
+        documents: documents.documents,
+        totalDocuments: documents.total
       }, 'Ownership history retrieved successfully');
     } catch (error: any) {
       logger.error('Get ownership history error:', error);
-      ResponseHandler.error(res, error.message, 500);
+      ResponseHandler.error(res, error.message || 'Internal server error', 500);
     }
   }
 
@@ -108,61 +111,57 @@ export const getBlockchainInfo = async (req: Request, res: Response): Promise<vo
     try {
       const contractAddress = await BlockchainService.getContractAddress();
       const networkInfo = await BlockchainService.getNetworkInfo();
-
+      const balance = await BlockchainService.getSignerBalance();
+      const stats = BlockchainService.getStats();
+      
       ResponseHandler.success(res, {
         contractAddress,
         network: networkInfo,
-        message: 'Blockchain information retrieved successfully'
+        mockBalance: `${balance} ETH (simulated)`,
+        statistics: stats,
+        mode: 'MOCK_BLOCKCHAIN'
       }, 'Blockchain info retrieved successfully');
     } catch (error: any) {
       logger.error('Get blockchain info error:', error);
-      ResponseHandler.error(res, error.message, 500);
+      ResponseHandler.error(res, error.message || 'Internal server error', 500);
     }
   }
 
 export const verifyDocumentIntegrity = async (req: Request, res: Response): Promise<void> => {
     try {
       const { documentId } = req.params;
+      
       if (!documentId) {
-        ResponseHandler.error(res, 'Document hash is required', 400);
-        return;
-      }
-      const documentHash = String(documentId);
-
-      // Get document from database by hash
-      const document = await DocumentService.getDocumentByHash(documentHash);
-      if (!document) {
-        ResponseHandler.notFound(res, 'Document not found');
+        ResponseHandler.error(res, 'Document ID is required', 400);
         return;
       }
 
-      // Check if document exists on blockchain using the actual document ID
-      const blockchainHash = await BlockchainService.getDocumentHash(document._id.toString());
-      const isOnBlockchain = blockchainHash !== null;
-      const hashMatches = blockchainHash === document.hash;
+      // FIX: Use DocumentService.verifyDocumentIntegrity method
+      const integrityResult = await DocumentService.verifyDocumentIntegrity(documentId);
 
-      // Determine integrity status
-      let integrityStatus = 'unknown';
-      if (isOnBlockchain && hashMatches) {
-        integrityStatus = 'verified';
-      } else if (isOnBlockchain && !hashMatches) {
-        integrityStatus = 'tampered';
-      } else if (!isOnBlockchain) {
-        integrityStatus = 'not_recorded';
+      let status = 'unknown';
+      if (integrityResult.blockchainMatch && integrityResult.ipfsAccessible) {
+        status = 'verified';
+      } else if (!integrityResult.blockchainMatch) {
+        status = 'not_recorded';  
+      } else if (!integrityResult.ipfsAccessible) {
+        status = 'ipfs_unavailable';
       }
 
       ResponseHandler.success(res, {
-        documentId: document._id,
-        integrityStatus,
-        isOnBlockchain,
-        hashMatches,
-        localHash: document.hash,
-        blockchainHash,
-        message: `Document integrity status: ${integrityStatus}`
+        documentId: integrityResult.document._id,
+        integrityStatus: status,
+        checks: {
+          blockchainMatch: integrityResult.blockchainMatch,
+          ipfsAccessible: integrityResult.ipfsAccessible,
+          isIntegrityValid: integrityResult.isIntegrityValid
+        },
+        errors: integrityResult.errors,
+        localHash: integrityResult.document.hash
       }, 'Document integrity check completed');
     } catch (error: any) {
       logger.error('Document integrity check error:', error);
-      ResponseHandler.error(res, error.message, 500);
+      ResponseHandler.error(res, error.message || 'Internal server error', 500);
     }
   }
 

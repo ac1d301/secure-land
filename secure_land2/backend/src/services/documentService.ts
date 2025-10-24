@@ -408,7 +408,7 @@ export class DocumentService {
     query: Record<string, any> = {},
     options: DocumentQueryOptions = {}
   ): Promise<{
-    documents: mongoose.LeanDocument<IDocument>[];
+    documents: IDocument[];
     total: number;
     page: number;
     pages: number;
@@ -446,7 +446,7 @@ export class DocumentService {
           .skip(skip)
           .limit(limit)
           .populate('ownerId', 'firstName lastName email')
-          .lean(),
+          .lean() as unknown as Promise<IDocument[]>,
         Document.countDocuments(dbQuery)
       ]);
 
@@ -490,10 +490,14 @@ export class DocumentService {
 
       // Get all versions (current + previous)
       const versions = [
-        ...document.previousVersions.map((v, i) => ({
-          ...v.toObject(),
-          version: document.version - i - 1
-        })),
+        ...document.previousVersions.map((v, i) => {
+          // Handle both Mongoose documents and plain objects
+          const versionData = typeof v.toObject === 'function' ? v.toObject() : v;
+          return {
+            ...versionData,
+            version: document.version - i - 1
+          };
+        }),
         {
           hash: document.hash,
           timestamp: document.updatedAt,
@@ -793,6 +797,108 @@ export class DocumentService {
         error: error instanceof Error ? error.message : String(error)
       });
       throw new Error('Failed to update blockchain confirmation');
+    }
+  }
+
+  /**
+   * Get user documents with proper typing
+   */
+  static async getUserDocuments(
+    userId: string, 
+    page: number = 1, 
+    limit: number = 10
+  ): Promise<{
+    documents: IDocument[];
+    total: number;
+    page: number;
+    pages: number;
+  }> {
+    try {
+      const skip = (page - 1) * limit;
+
+      const [documents, total] = await Promise.all([
+        Document.find({ ownerId: userId })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate('verifiedBy', 'firstName lastName'),
+        Document.countDocuments({ ownerId: userId })
+      ]);
+
+      return {
+        documents,
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      };
+    } catch (error) {
+      logger.error('Get user documents failed:', {
+        userId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw new Error('Failed to retrieve user documents');
+    }
+  }
+
+  /**
+   * Get all documents with filtering
+   */
+  static async getAllDocuments(
+    page: number = 1, 
+    limit: number = 10, 
+    status?: string
+  ): Promise<{
+    documents: IDocument[];
+    total: number;
+    page: number;
+    pages: number;
+  }> {
+    try {
+      const skip = (page - 1) * limit;
+      const query: any = {};
+      
+      if (status) {
+        query.status = status;
+      }
+
+      const [documents, total] = await Promise.all([
+        Document.find(query)
+          .populate('ownerId', 'firstName lastName email')
+          .populate('verifiedBy', 'firstName lastName')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+        Document.countDocuments(query)
+      ]);
+
+      return {
+        documents,
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      };
+    } catch (error) {
+      logger.error('Get all documents failed:', {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw new Error('Failed to retrieve all documents');
+    }
+  }
+
+  /**
+   * Get documents by property ID
+   */
+  static async getDocumentsByProperty(propertyId: string): Promise<IDocument[]> {
+    try {
+      return await Document.find({ propertyId })
+        .sort({ createdAt: -1 })
+        .populate('ownerId', 'firstName lastName email');
+    } catch (error) {
+      logger.error('Get documents by property failed:', {
+        propertyId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw new Error('Failed to retrieve documents by property');
     }
   }
 }

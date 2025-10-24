@@ -1,12 +1,21 @@
-import axios from 'axios';
+import { logger } from '../utils/logger';
 
 export interface IPFSConfig {
-  apiKey: string;
-  secretKey: string;
+  apiKey?: string;
+  secretKey?: string;
   baseUrl: string;
 }
 
 export const getIPFSConfig = (): IPFSConfig => {
+  const proxyMode = process.env.PROXY_MODE || 'mock';
+  
+  if (proxyMode === 'mock') {
+    logger.info('📝 IPFS config: Using mock mode (no external dependencies)');
+    return {
+      baseUrl: 'https://mock-gateway.ipfs.local'
+    };
+  }
+
   const apiKey = process.env.PINATA_API_KEY;
   const secretKey = process.env.PINATA_SECRET_API_KEY;
   
@@ -23,9 +32,17 @@ export const getIPFSConfig = (): IPFSConfig => {
 
 // PROXY: IPFS Upload via Pinata
 export const uploadToIPFS = async (file: Buffer, fileName: string): Promise<string> => {
+  const proxyMode = process.env.PROXY_MODE || 'mock';
+  
+  if (proxyMode === 'mock') {
+    logger.info('📁 Mock IPFS: uploadToIPFS called - redirecting to IPFSService');
+    throw new Error('Use IPFSService.uploadFile instead in mock mode');
+  }
+
   const config = getIPFSConfig();
   
   try {
+    const axios = require('axios');
     const formData = new FormData();
     formData.append('file', new Blob([file]), fileName);
     

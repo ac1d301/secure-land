@@ -10,11 +10,15 @@ export interface IBlockchainMetadata {
 }
 
 export interface IDocumentVersion {
+  _id?: any;
   hash: string;
   timestamp: Date;
   txHash?: string;
-  changedBy: string;
+  changedBy: string | mongoose.Types.ObjectId;
   changeReason?: string;
+  // Make all Mongoose document methods optional
+  toObject?: (options?: any) => any;
+  [key: string]: any;
 }
 
 export interface IDocument extends Document {

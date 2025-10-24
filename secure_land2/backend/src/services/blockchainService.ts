@@ -226,7 +226,36 @@ class BlockchainService {
 
   static async getSignerBalance(): Promise<string> {
     await this.initialize();
-    return '100.0';
+    const balance = (50 + Math.random() * 50).toFixed(4);
+    return balance;
+  }
+
+  static async estimateGas(method: string, params: unknown[]): Promise<bigint> {
+    await this.initialize();
+    const baseGas = 21000;
+    const methodGas = method.includes('batch') ? 100000 : 50000;
+    return BigInt(baseGas + methodGas);
+  }
+
+  static async waitForConfirmation(txHash: string, confirmations = 3): Promise<any> {
+    await this.initialize();
+    logger.info('⏳ Mock Blockchain: Waiting for confirmations', { 
+      txHash: txHash.slice(0, 10) + '...',
+      confirmations 
+    });
+    
+    for (let i = 1; i <= confirmations; i++) {
+      await this.simulateDelay();
+      logger.info(`✅ Mock Blockchain: Confirmation ${i}/${confirmations}`);
+    }
+    
+    return {
+      transactionHash: txHash,
+      blockNumber: this.blockNumber - 1,
+      confirmations,
+      status: 1,
+      gasUsed: BigInt(25000)
+    };
   }
 
   static async healthCheck(): Promise<boolean> {

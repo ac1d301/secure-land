@@ -1,9 +1,8 @@
-import { ethers } from 'ethers';
 import { logger } from '../utils/logger';
 
 export interface BlockchainConfig {
-  provider: ethers.JsonRpcProvider;
-  signer: ethers.Wallet;
+  provider: any;
+  signer: any;
   contractAddress: string;
   network: string;
   gasLimit: number;
@@ -38,7 +37,26 @@ const validateConfig = () => {
 };
 
 export const getBlockchainConfig = (): BlockchainConfig => {
+  // Check if we're in mock mode
+  const proxyMode = process.env.PROXY_MODE || 'mock';
+  
+  if (proxyMode === 'mock') {
+    logger.info('📝 Blockchain config: Using mock mode (no external dependencies)');
+    return {
+      provider: null,
+      signer: null,
+      contractAddress: '0xMockContractAddress',
+      network: 'mock-local',
+      gasLimit: 300000,
+      maxFeePerGas: '15',
+      maxPriorityFeePerGas: '1.5',
+      requiredConfirmations: 3
+    };
+  }
+
+  // For ethers mode, require ethers library
   try {
+    const { ethers } = require('ethers');
     validateConfig();
 
     const provider = new ethers.JsonRpcProvider(
@@ -75,11 +93,25 @@ export const getRetryConfig = () => ({
   factor: 2
 });
 
-export const getGasSettings = () => ({
-  maxFeePerGas: ethers.parseUnits(process.env.MAX_FEE_PER_GAS || '15', 'gwei'),
-  maxPriorityFeePerGas: ethers.parseUnits(process.env.MAX_PRIORITY_FEE_PER_GAS || '1.5', 'gwei'),
-  gasLimit: parseInt(process.env.GAS_LIMIT || '300000')
-});
+export const getGasSettings = () => {
+  const proxyMode = process.env.PROXY_MODE || 'mock';
+  
+  if (proxyMode === 'mock') {
+    return {
+      maxFeePerGas: '15',
+      maxPriorityFeePerGas: '1.5',
+      gasLimit: 300000
+    };
+  }
+  
+  // For ethers mode
+  const { ethers } = require('ethers');
+  return {
+    maxFeePerGas: ethers.parseUnits(process.env.MAX_FEE_PER_GAS || '15', 'gwei'),
+    maxPriorityFeePerGas: ethers.parseUnits(process.env.MAX_PRIORITY_FEE_PER_GAS || '1.5', 'gwei'),
+    gasLimit: parseInt(process.env.GAS_LIMIT || '300000')
+  };
+};
 
 export const isEthereumAddress = (address: string): boolean => {
   return /^0x[0-9a-fA-F]{40}$/.test(address);

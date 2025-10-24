@@ -192,6 +192,18 @@ class IPFSService {
     mockIPFSStorage.clear();
     logger.info('📁 Mock IPFS: All data cleared');
   }
+
+  static async healthCheck(): Promise<boolean> {
+    return true;
+  }
+
+  static getAllRecords(): Array<{ cid: string; metadata: any }> {
+    return Array.from(mockIPFSStorage.entries()).map(([cid, data]) => ({ 
+      cid, 
+      metadata: data.metadata 
+    }));
+  }
 }
 
 export default IPFSService;
+export { IPFSService };
