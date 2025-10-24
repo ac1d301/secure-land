@@ -10,10 +10,12 @@ import authRoutes from './routes/authRoutes';
 import documentRoutes from './routes/documentRoutes';
 import verifyRoutes from './routes/verifyRoutes';
 import notificationRoutes from './routes/notificationRoutes';
+import proxyRoutes from './routes/proxyRoutes';
 
 // Import middleware
 import { ResponseHandler } from './utils/responseHandler';
 import { logger } from './utils/logger';
+import { initializeProxyServices, getCurrentProxyMode } from './services/proxySelector';
 
 // Load environment variables
 dotenv.config();
@@ -52,6 +54,19 @@ app.use(morgan('combined', {
   }
 }));
 
+app.use(async (req, res, next) => {
+  if (!req.app.locals.proxyInitialized) {
+    try {
+      await initializeProxyServices();
+      req.app.locals.proxyInitialized = true;
+      logger.info(`🚀 Proxy services initialized in ${getCurrentProxyMode().toUpperCase()} mode`);
+    } catch (error) {
+      logger.error('❌ Failed to initialize proxy services:', error);
+    }
+  }
+  next();
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   ResponseHandler.success(res, {
@@ -67,6 +82,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/verify', verifyRoutes);
 app.use('/api/notify', notificationRoutes);
+app.use('/api/proxy', proxyRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

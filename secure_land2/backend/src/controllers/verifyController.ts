@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { ResponseHandler } from '../utils/responseHandler';
 import { logger } from '../utils/logger';
 import DocumentService from '../services/documentService';
-import BlockchainService from '../services/blockchainService';
+import { BlockchainService } from '../services/proxySelector';
 
 export const verifyDocument = async (req: Request, res: Response): Promise<void> => {
     try {

@@ -1,7 +1,7 @@
 import mongoose, { ClientSession } from 'mongoose';
 import Document, { IDocument, IDocumentVersion } from '../models/Document';
-import { IPFSService } from './ipfsService';
-import { BlockchainService } from './blockchainService';
+import BlockchainService from './blockchainService';
+import IPFSService from './ipfsService';
 import { generateHash, generatePropertyId } from '../utils/hashUtils';
 import { logger } from '../utils/logger';
 
@@ -408,7 +408,7 @@ export class DocumentService {
     query: Record<string, any> = {},
     options: DocumentQueryOptions = {}
   ): Promise<{
-    documents: IDocument[];
+    documents: mongoose.LeanDocument<IDocument>[];
     total: number;
     page: number;
     pages: number;

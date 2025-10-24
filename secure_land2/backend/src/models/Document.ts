@@ -32,9 +32,14 @@ export interface IDocument extends Document {
   verificationDate?: Date;
   verifiedBy?: string;
   rejectionReason?: string;
+  metadata: Record<string, any>;
   
   // Blockchain metadata
   blockchain: IBlockchainMetadata;
+  blockchainTxHash?: string;
+  mockBlockNumber?: number;
+  lastIntegrityCheck?: Date;
+  integrityStatus: 'pending' | 'verified' | 'failed';
   
   // Document versioning
   version: number;
@@ -182,6 +187,10 @@ const DocumentSchema = new Schema<IDocument>({
     trim: true,
     maxlength: [500, 'Rejection reason cannot exceed 500 characters']
   },
+  metadata: {
+    type: Schema.Types.Mixed,
+    default: () => ({})
+  },
   blockchain: {
     type: BlockchainMetadataSchema,
     required: true,
@@ -192,6 +201,22 @@ const DocumentSchema = new Schema<IDocument>({
       verificationCount: 0,
       isOnChain: false
     })
+  },
+  blockchainTxHash: {
+    type: String,
+    trim: true
+  },
+  mockBlockNumber: {
+    type: Number,
+    min: [0, 'Mock block number must be non-negative']
+  },
+  lastIntegrityCheck: {
+    type: Date
+  },
+  integrityStatus: {
+    type: String,
+    enum: ['pending', 'verified', 'failed'],
+    default: 'pending'
   },
   version: {
     type: Number,

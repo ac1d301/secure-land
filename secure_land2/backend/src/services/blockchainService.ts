@@ -1,365 +1,256 @@
-import { ethers } from 'ethers';
-import { 
-  getBlockchainConfig, 
-  getRetryConfig, 
-  getGasSettings, 
-  isEthereumAddress,
-  isTransactionHash
-} from '../config/blockchain';
+import crypto from 'crypto';
 import { logger } from '../utils/logger';
 
-// Smart Contract ABI for SecureLand
-const SECURE_LAND_ABI = [
-  // Record single document
-  {
-    "inputs": [
-      {"internalType": "string", "name": "documentId", "type": "string"},
-      {"internalType": "bytes32", "name": "hash", "type": "bytes32"}
-    ],
-    "name": "recordDocumentHash",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  // Record multiple documents
-  {
-    "inputs": [
-      {"internalType": "string[]", "name": "documentIds", "type": "string[]"},
-      {"internalType": "bytes32[]", "name": "hashes", "type": "bytes32[]"}
-    ],
-    "name": "recordDocumentHashes",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  // Verify document
-  {
-    "inputs": [
-      {"internalType": "string", "name": "documentId", "type": "string"},
-      {"internalType": "bytes32", "name": "hash", "type": "bytes32"}
-    ],
-    "name": "verifyDocumentHash",
-    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  // Get document hash
-  {
-    "inputs": [{"internalType": "string", "name": "documentId", "type": "string"}],
-    "name": "getDocumentHash",
-    "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  // Get document metadata
-  {
-    "inputs": [{"internalType": "string", "name": "documentId", "type": "string"}],
-    "name": "getDocumentMetadata",
-    "outputs": [
-      {"internalType": "bytes32", "name": "hash", "type": "bytes32"},
-      {"internalType": "uint256", "name": "timestamp", "type": "uint256"},
-      {"internalType": "address", "name": "recorder", "type": "address"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  }
-];
-
-type RetryOptions = {
-  maxRetries: number;
-  initialBackoff: number;
-  maxBackoff: number;
-  factor: number;
+type StoredRecord = {
+  hash: string;
+  timestamp: number;
+  blockNumber: number;
+  txHash: string;
+  recorder: string;
 };
 
-export class BlockchainService {
-  private static contract: ethers.Contract | null = null;
-  private static provider: ethers.JsonRpcProvider | null = null;
-  private static signer: ethers.Wallet | null = null;
-  private static config: ReturnType<typeof getBlockchainConfig> | null = null;
+type BlockchainStats = {
+  totalDocuments: number;
+  currentBlock: number;
+  totalTransactions: number;
+  delays: {
+    enabled: boolean;
+    minDelay: number;
+    maxDelay: number;
+  };
+};
 
-  /**
-   * Initialize blockchain service with configuration
-   */
+const DEFAULT_MIN_DELAY = 500;
+const DEFAULT_MAX_DELAY = 2000;
+
+const parseDelay = (value: string | undefined, fallback: number): number => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return fallback;
+  }
+  return parsed;
+};
+
+const delaysEnabled = (): boolean => {
+  const flag = process.env.MOCK_ENABLE_REALISTIC_DELAYS;
+  if (!flag) {
+    return true;
+  }
+  return flag.toLowerCase() !== 'false';
+};
+
+const wait = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+
+class BlockchainService {
+  private static storage = new Map<string, StoredRecord>();
+  private static blockNumber = 1000000;
+  private static totalTransactions = 0;
+  private static initialized = false;
+
+  private static getDelayRange(): { min: number; max: number } {
+    const min = parseDelay(process.env.MOCK_BLOCKCHAIN_MIN_DELAY, DEFAULT_MIN_DELAY);
+    const max = parseDelay(process.env.MOCK_BLOCKCHAIN_MAX_DELAY, DEFAULT_MAX_DELAY);
+    if (max < min) {
+      return { min, max: min };
+    }
+    return { min, max };
+  }
+
+  private static async simulateDelay(): Promise<void> {
+    if (!delaysEnabled()) {
+      return;
+    }
+    const { min, max } = this.getDelayRange();
+    const duration = min + Math.random() * (max - min);
+    await wait(duration);
+  }
+
+  private static generateTransactionHash(documentId: string): string {
+    const seed = `${documentId}-${Date.now()}-${Math.random()}`;
+    const hash = crypto.createHash('sha256').update(seed).digest('hex');
+    return `0x${hash}`;
+  }
+
   static async initialize(): Promise<void> {
-    try {
-      this.config = getBlockchainConfig();
-      this.provider = this.config.provider;
-      this.signer = this.config.signer;
-      
-      // Create contract instance with signer for write operations
-      this.contract = new ethers.Contract(
-        this.config.contractAddress,
-        SECURE_LAND_ABI,
-        this.signer
-      );
-
-      logger.info('Blockchain service initialized', {
-        network: this.config.network,
-        contractAddress: this.config.contractAddress,
-        signerAddress: await this.signer.getAddress()
-      });
-    } catch (error) {
-      logger.error('Failed to initialize blockchain service:', error);
-      throw new Error(`Blockchain service initialization failed: ${error instanceof Error ? error.message : String(error)}`);
+    if (this.initialized) {
+      return;
     }
+    this.initialized = true;
+    const { min, max } = this.getDelayRange();
+    logger.info('🔧 Mock Blockchain: Service initialized', {
+      delaysEnabled: delaysEnabled(),
+      minDelay: min,
+      maxDelay: max
+    });
   }
 
-  /**
-   * Execute a function with retry logic and exponential backoff
-   */
-  private static async withRetry<T>(
-    operation: () => Promise<T>,
-    maxRetries: number = 3,
-    baseDelayMs: number = 1000
-  ): Promise<T> {
-    let lastError: Error | null = null;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const result = await operation();
-        if (result === undefined) {
-          throw new Error('Operation returned undefined');
-        }
-        return result;
-      } catch (error) {
-        lastError = error as Error;
-        if (attempt < maxRetries) {
-          const delayMs = baseDelayMs * Math.pow(2, attempt - 1);
-          logger.warn(`Operation failed, retrying in ${delayMs}ms (attempt ${attempt}/${maxRetries}):`, error);
-          await new Promise(resolve => setTimeout(resolve, delayMs));
-        } else {
-          throw lastError;
-        }
+  static getStats(): BlockchainStats {
+    const { min, max } = this.getDelayRange();
+    return {
+      totalDocuments: this.storage.size,
+      currentBlock: this.blockNumber,
+      totalTransactions: this.totalTransactions,
+      delays: {
+        enabled: delaysEnabled(),
+        minDelay: min,
+        maxDelay: max
       }
-    }
-    
-    throw lastError || new Error('Unknown error in retry operation');
+    };
   }
 
-  /**
-   * Wait for transaction confirmation
-   */
-  static async waitForConfirmation(
-    txHash: string,
-    confirmations: number = this.config.requiredConfirmations
-  ): Promise<ethers.TransactionReceipt> {
-    if (!isTransactionHash(txHash)) {
-      throw new Error(`Invalid transaction hash: ${txHash}`);
-    }
-
-    try {
-      logger.info(`Waiting for ${confirmations} confirmations for tx: ${txHash}`);
-      const receipt = await this.withRetry(async () => {
-        const tx = await this.provider.getTransaction(txHash);
-        if (!tx) {
-          throw new Error(`Transaction not found: ${txHash}`);
-        }
-        const receipt = await tx.wait(confirmations);
-        if (!receipt) {
-          throw new Error(`No receipt received for transaction: ${txHash}`);
-        }
-        return receipt;
-      });
-
-      if (!receipt) {
-        throw new Error(`Failed to get receipt for transaction: ${txHash}`);
-      }
-
-      if (receipt.status === 0) {
-        throw new Error(`Transaction ${txHash} failed`);
-      }
-
-      logger.info(`Transaction confirmed: ${txHash}`, {
-        blockNumber: receipt.blockNumber,
-        confirmations: receipt.confirmations,
-        gasUsed: receipt.gasUsed?.toString() || '0',
-        effectiveGasPrice: receipt.gasPrice?.toString() || '0'
-      });
-
-      return receipt;
-    } catch (error) {
-      logger.error(`Failed to confirm transaction ${txHash}:`, error);
-      throw new Error(`Transaction confirmation failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  /**
-   * Estimate gas for a contract method
-   */
-  static async estimateGas(
-    method: string,
-    params: any[]
-  ): Promise<bigint> {
-    try {
-      if (!this.contract) await this.initialize();
-      
-      const contractMethod = this.contract[method as keyof typeof this.contract];
-      if (!contractMethod || typeof contractMethod.estimateGas !== 'function') {
-        throw new Error(`Method ${method} not found or not callable`);
-      }
-      
-      const gasEstimate = await contractMethod.estimateGas(...params);
-      // Add 20% buffer to the estimate using bigint operations
-      const gasEstimateBigInt = typeof gasEstimate === 'bigint' ? gasEstimate : BigInt(gasEstimate.toString());
-      const gasWithBuffer = (gasEstimateBigInt * 120n) / 100n;
-      return gasWithBuffer;
-    } catch (error) {
-      logger.error(`Gas estimation failed for ${method}:`, error);
-      throw new Error(`Gas estimation failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  /**
-   * Record a document hash on the blockchain
-   */
   static async recordDocumentHash(
     documentId: string,
     hash: string,
-    options: { waitForConfirmation?: boolean } = { waitForConfirmation: true }
+    _options: { waitForConfirmation?: boolean } = {}
   ): Promise<string> {
-    try {
-      if (!this.contract) await this.initialize();
+    await this.initialize();
+    await this.simulateDelay();
 
-      // Validate inputs
-      if (!documentId || !hash) {
-        throw new Error('Document ID and hash are required');
-      }
-
-      // Convert hex string to bytes32
-      const hashBytes32 = ethers.keccak256(ethers.toUtf8Bytes(hash));
-      
-      // Get gas settings
-      const gasSettings = getGasSettings();
-      
-      // Estimate gas
-      const estimatedGas = await this.estimateGas('recordDocumentHash', [documentId, hashBytes32]);
-      
-      // Send transaction
-      const tx = await this.withRetry(async () => {
-        if (!this.contract) {
-          throw new Error('Contract not initialized');
-        }
-        // Type assertion since we know this method exists from the ABI
-        const contractWithMethods = this.contract as unknown as {
-          recordDocumentHash: (id: string, hash: string, options: any) => Promise<ethers.TransactionResponse>;
-        };
-        return contractWithMethods.recordDocumentHash(documentId, hashBytes32, {
-          ...gasSettings,
-          gasLimit: estimatedGas
-        });
-      });
-
-      logger.info(`Document hash recorded on blockchain`, {
-        documentId,
-        txHash: tx.hash,
-        blockNumber: tx.blockNumber
-      });
-
-      // Wait for confirmation if requested
-      if (options.waitForConfirmation) {
-        await this.waitForConfirmation(tx.hash);
-      }
-
-      return tx.hash;
-    } catch (error) {
-      logger.error('Failed to record document hash on blockchain:', {
-        documentId,
-        error: error instanceof Error ? error.message : String(error)
-      });
-      throw new Error(`Failed to record document: ${error instanceof Error ? error.message : String(error)}`);
+    if (!documentId || !hash) {
+      throw new Error('Document ID and hash are required');
     }
-  }
 
-  /**
-   * Record multiple document hashes in a single transaction
-   */
-  static async recordMultipleDocuments(
-    documents: Array<{ id: string; hash: string }>,
-    options: { waitForConfirmation?: boolean } = { waitForConfirmation: true }
-  ): Promise<string> {
-    try {
-      if (!this.contract) await this.initialize();
+    const normalizedHash = hash.toLowerCase();
+    const txHash = this.generateTransactionHash(documentId);
+    const blockNumber = this.blockNumber++;
 
-      // Validate inputs
-      if (!Array.isArray(documents) || documents.length === 0) {
-        throw new Error('At least one document is required');
-      }
-
-      // Process documents
-      const documentIds = documents.map(doc => doc.id);
-      const hashes = documents.map(doc => ethers.keccak256(ethers.toUtf8Bytes(doc.hash)));
-      
-      // Get gas settings
-      const gasSettings = getGasSettings();
-      
-      // Estimate gas (with some buffer for multiple documents)
-      const estimatedGas = await this.estimateGas('recordDocumentHashes', [documentIds, hashes]);
-      const bufferPercentage = BigInt(100 + (documents.length * 5));
-      const gasWithBuffer = (estimatedGas * bufferPercentage) / 100n;
-      
-      // Send transaction
-      const tx = await this.withRetry(async () => {
-        if (!this.contract) {
-          throw new Error('Contract not initialized');
-        }
-        // Type assertion since we know this method exists from the ABI
-        const contractWithMethods = this.contract as unknown as {
-          recordDocumentHashes: (ids: string[], hashes: string[], options: any) => Promise<ethers.TransactionResponse>;
-        };
-        return contractWithMethods.recordDocumentHashes(documentIds, hashes, {
-          ...gasSettings,
-          gasLimit: gasWithBuffer
-        });
-      });
-
-      logger.info(`Batch document hashes recorded on blockchain`, {
-        documentCount: documents.length,
-        txHash: tx.hash,
-        blockNumber: tx.blockNumber
-      });
-
-      // Wait for confirmation if requested
-      if (options.waitForConfirmation) {
-        await this.waitForConfirmation(tx.hash);
-      }
-
-      return tx.hash;
-    } catch (error) {
-      logger.error('Failed to record multiple documents on blockchain:', {
-        documentCount: documents?.length,
-        error: error instanceof Error ? error.message : String(error)
-      });
-      throw new Error(`Failed to record documents: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  /**
-   * Verify a document hash on the blockchain
-   */
-  static async verifyDocumentHash(
-    documentId: string,
-    hash: string
-  ): Promise<boolean> {
-    try {
-      };
-      return await contractWithMethods.verifyDocumentHash(documentId, hashBytes32);
+    this.storage.set(documentId, {
+      hash: normalizedHash,
+      timestamp: Date.now(),
+      blockNumber,
+      txHash,
+      recorder: 'mock-signer'
     });
 
-    logger.info(`Document verification ${isValid ? 'succeeded' : 'failed'}`, {
+    this.totalTransactions += 1;
+
+    logger.info('🔗 Mock Blockchain: Document hash recorded successfully', {
       documentId,
-      isValid
+      hash: normalizedHash.slice(0, 10),
+      txHash: `${txHash.slice(0, 10)}...`,
+      blockNumber
     });
-    try {
-      const hash = await this.getDocumentHash(documentId);
-      return hash !== null;
-    } catch (error) {
-      logger.error('Failed to check if document exists on blockchain:', {
-        documentId,
-        error: error instanceof Error ? error.message : String(error)
+
+    return txHash;
+  }
+
+  static async recordMultipleDocuments(documents: Array<{ id: string; hash: string }>): Promise<string> {
+    await this.initialize();
+
+    if (!Array.isArray(documents) || documents.length === 0) {
+      throw new Error('At least one document is required');
+    }
+
+    await this.simulateDelay();
+
+    const batchHash = crypto.createHash('sha256').update(`${Date.now()}-${documents.length}-${Math.random()}`).digest('hex');
+    const batchTxHash = `0x${batchHash}`;
+    const batchBlockNumber = this.blockNumber++;
+
+    documents.forEach(doc => {
+      const normalized = doc.hash.toLowerCase();
+      this.storage.set(doc.id, {
+        hash: normalized,
+        timestamp: Date.now(),
+        blockNumber: batchBlockNumber,
+        txHash: batchTxHash,
+        recorder: 'mock-signer'
       });
+    });
+
+    this.totalTransactions += documents.length;
+
+    logger.info('🔗 Mock Blockchain: Batch documents recorded', {
+      count: documents.length,
+      txHash: `${batchTxHash.slice(0, 10)}...`,
+      blockNumber: batchBlockNumber
+    });
+
+    return batchTxHash;
+  }
+
+  static async verifyDocumentHash(documentId: string, expectedHash: string): Promise<boolean> {
+    await this.initialize();
+    await this.simulateDelay();
+
+    const stored = this.storage.get(documentId);
+    if (!stored) {
+      logger.warn('🔗 Mock Blockchain: Document not found during verification', { documentId });
       return false;
     }
+
+    const normalizedExpected = expectedHash.toLowerCase();
+    const isValid = stored.hash === normalizedExpected;
+
+    logger.info('🔗 Mock Blockchain: Verification completed', {
+      documentId,
+      expectedHash: normalizedExpected.slice(0, 10),
+      storedHash: stored.hash.slice(0, 10),
+      isValid,
+      blockNumber: stored.blockNumber
+    });
+
+    return isValid;
+  }
+
+  static async getDocumentHash(documentId: string): Promise<string | null> {
+    await this.initialize();
+    const stored = this.storage.get(documentId);
+    if (stored) {
+      logger.debug('🔗 Mock Blockchain: Hash retrieved', {
+        documentId,
+        hash: stored.hash.slice(0, 10)
+      });
+      return stored.hash;
+    }
+    return null;
+  }
+
+  static async documentExists(documentId: string): Promise<boolean> {
+    await this.initialize();
+    return this.storage.has(documentId);
+  }
+
+  static async getNetworkInfo(): Promise<{ chainId: number; name: string }> {
+    await this.initialize();
+    return {
+      chainId: 31337,
+      name: 'secureland-mocknet'
+    };
+  }
+
+  static async getContractAddress(): Promise<string> {
+    await this.initialize();
+    return '0xMockContractAddress123456789abcdef';
+  }
+
+  static async getSignerBalance(): Promise<string> {
+    await this.initialize();
+    return '100.0';
+  }
+
+  static async healthCheck(): Promise<boolean> {
+    await this.initialize();
+    return true;
+  }
+
+  static getAllRecords(): Array<{ documentId: string; data: StoredRecord }> {
+    return Array.from(this.storage.entries()).map(([documentId, data]) => ({
+      documentId,
+      data
+    }));
+  }
+
+  static async getRecordDetails(documentId: string): Promise<StoredRecord | null> {
+    await this.initialize();
+    return this.storage.get(documentId) ?? null;
+  }
+
+  static clearAllData(): void {
+    this.storage.clear();
+    this.blockNumber = 1000000;
+    this.totalTransactions = 0;
+    logger.info('🔗 Mock Blockchain: All data cleared');
   }
 }
 
